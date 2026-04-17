@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using TMPro;
 
 [DefaultExecutionOrder(-5)]
@@ -21,7 +23,12 @@ public class UIManager : MonoBehaviour
 
     void BuildUI()
     {
-        // ── Canvas ────────────────────────────────────────────
+        // EventSystem — без него кнопки не работают
+        var esGO = new GameObject("EventSystem");
+        esGO.AddComponent<EventSystem>();
+        esGO.AddComponent<InputSystemUIInputModule>();
+
+        // Canvas
         var canvasGO = new GameObject("GameCanvas");
         var canvas   = canvasGO.AddComponent<Canvas>();
         canvas.renderMode   = RenderMode.ScreenSpaceOverlay;
@@ -31,7 +38,7 @@ public class UIManager : MonoBehaviour
         scaler.referenceResolution = new Vector2(1920, 1080);
         canvasGO.AddComponent<GraphicRaycaster>();
 
-        // ── HUD: full-width top bar ───────────────────────────
+        // HUD: тёмная полоска сверху
         var hud     = MakeRect(canvasGO.transform, "HUD");
         hud.anchorMin        = new Vector2(0, 1);
         hud.anchorMax        = new Vector2(1, 1);
@@ -40,16 +47,16 @@ public class UIManager : MonoBehaviour
         hud.sizeDelta        = new Vector2(0, 70);
         hud.gameObject.AddComponent<Image>().color = new Color(0.08f, 0.08f, 0.08f, 0.88f);
 
-        goldText = MakeText(hud, "Gold", new Vector2(0f, 0f),    new Vector2(0.25f, 1f), "Золото: 20");
+        goldText = MakeText(hud, "Gold", new Vector2(0f,    0f), new Vector2(0.25f, 1f), "Золото: 20");
         woodText = MakeText(hud, "Wood", new Vector2(0.25f, 0f), new Vector2(0.50f, 1f), "Дерево: 10");
         turnText = MakeText(hud, "Turn", new Vector2(0.50f, 0f), new Vector2(0.78f, 1f), "Ход 1 — Ваш");
         turnText.alignment = TextAlignmentOptions.Center;
 
-        // ── End Turn button ───────────────────────────────────
-        var btnRT               = MakeRect(hud, "EndTurnBtn");
-        btnRT.anchorMin         = new Vector2(0.81f, 0.1f);
-        btnRT.anchorMax         = new Vector2(0.99f, 0.9f);
-        btnRT.sizeDelta         = Vector2.zero;
+        // Кнопка "Завершить ход"
+        var btnRT       = MakeRect(hud, "EndTurnBtn");
+        btnRT.anchorMin = new Vector2(0.81f, 0.1f);
+        btnRT.anchorMax = new Vector2(0.99f, 0.9f);
+        btnRT.sizeDelta = Vector2.zero;
         btnRT.gameObject.AddComponent<Image>().color = new Color(0.15f, 0.55f, 0.15f);
         var btn = btnRT.gameObject.AddComponent<Button>();
         btn.onClick.AddListener(OnEndTurnClicked);
@@ -57,11 +64,11 @@ public class UIManager : MonoBehaviour
         btnLabel.alignment = TextAlignmentOptions.Center;
         btnLabel.fontSize  = 26;
 
-        // ── Result panel (center, hidden) ─────────────────────
-        var panelRT             = MakeRect(canvasGO.transform, "ResultPanel");
-        panelRT.anchorMin       = new Vector2(0.3f, 0.4f);
-        panelRT.anchorMax       = new Vector2(0.7f, 0.6f);
-        panelRT.sizeDelta       = Vector2.zero;
+        // Панель победы/поражения (по центру, скрыта)
+        var panelRT       = MakeRect(canvasGO.transform, "ResultPanel");
+        panelRT.anchorMin = new Vector2(0.3f, 0.4f);
+        panelRT.anchorMax = new Vector2(0.7f, 0.6f);
+        panelRT.sizeDelta = Vector2.zero;
         panelRT.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.05f, 0.05f, 0.95f);
         resultPanel = panelRT.gameObject;
 
