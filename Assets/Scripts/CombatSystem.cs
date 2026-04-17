@@ -6,7 +6,7 @@ public static class CombatSystem
     {
         int damage = attacker.Attack;
         attacker.UseAP(1);
-        attacker.RefreshHighlights();
+        if (!attacker.IsEnemy) attacker.RefreshHighlights();
         target.TakeDamage(damage, attacker.UnitName);
     }
 
