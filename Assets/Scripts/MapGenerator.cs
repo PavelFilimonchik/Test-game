@@ -1,9 +1,12 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class MapGenerator : MonoBehaviour
 {
     public int Width = 10;
     public int Height = 10;
+
+    public static Dictionary<Vector2Int, GameObject> TileObjects = new Dictionary<Vector2Int, GameObject>();
 
     private Tile[,] tiles;
 
@@ -66,6 +69,8 @@ public class MapGenerator : MonoBehaviour
         SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
         sr.sprite = sprite;
         sr.color = TileColor(tile.Type);
+
+        TileObjects[new Vector2Int(tile.X, tile.Y)] = obj;
     }
 
     Color TileColor(TileType type)
