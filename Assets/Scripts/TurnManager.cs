@@ -5,7 +5,7 @@ public class TurnManager : MonoBehaviour
 {
     public static TurnManager Instance;
 
-    public int TurnNumber { get; private set; } = 1;
+    public int  TurnNumber   { get; private set; } = 1;
     public bool IsPlayerTurn { get; private set; } = true;
 
     void Awake() => Instance = this;
@@ -15,7 +15,7 @@ public class TurnManager : MonoBehaviour
     void Update()
     {
         if (IsPlayerTurn && Keyboard.current.spaceKey.wasPressedThisFrame)
-            EndPlayerTurn();
+            PlayerEndTurn();
     }
 
     void StartPlayerTurn()
@@ -24,12 +24,16 @@ public class TurnManager : MonoBehaviour
         foreach (var unit in FindObjectsByType<Unit>(FindObjectsSortMode.None))
             unit.ResetAP();
         ResourceManager.Instance.CollectFromBuildings();
-        Debug.Log($"=== ХОД {TurnNumber} — ВАШ ХОД === (Пробел — завершить)");
+        VictoryCondition.Check();
+        UIManager.Instance?.UpdateTurn(TurnNumber, true);
+        Debug.Log($"=== ХОД {TurnNumber} — ВАШ ХОД === (Пробел или кнопка — завершить)");
     }
 
-    void EndPlayerTurn()
+    public void PlayerEndTurn()
     {
+        if (!IsPlayerTurn) return;
         IsPlayerTurn = false;
+        UIManager.Instance?.UpdateTurn(TurnNumber, false);
         Debug.Log($"Ход {TurnNumber}: ход противника...");
         StartCoroutine(EnemyAI.Instance.RunTurn());
     }

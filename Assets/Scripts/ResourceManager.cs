@@ -16,6 +16,7 @@ public class ResourceManager : MonoBehaviour
             Gold += b.GoldPerTurn;
             Wood += b.WoodPerTurn;
         }
+        UIManager.Instance?.UpdateResources(Gold, Wood);
         Debug.Log($"Ресурсы: Золото={Gold} | Дерево={Wood}");
     }
 
@@ -28,6 +29,7 @@ public class ResourceManager : MonoBehaviour
         }
         Gold -= goldCost;
         Wood -= woodCost;
+        UIManager.Instance?.UpdateResources(Gold, Wood);
         return true;
     }
 }
