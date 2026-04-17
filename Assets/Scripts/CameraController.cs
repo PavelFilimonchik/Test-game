@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class CameraController : MonoBehaviour
 {
@@ -23,17 +24,27 @@ public class CameraController : MonoBehaviour
 
     void HandleMovement()
     {
-        float h = Input.GetAxisRaw("Horizontal"); // A/D или ←/→
-        float v = Input.GetAxisRaw("Vertical");   // W/S или ↑/↓
+        float h = 0f;
+        float v = 0f;
 
-        Vector3 move = new Vector3(h, v, 0) * MoveSpeed * Time.deltaTime;
-        transform.position += move;
+        var kb = Keyboard.current;
+        if (kb == null) return;
+
+        if (kb.aKey.isPressed || kb.leftArrowKey.isPressed)  h = -1f;
+        if (kb.dKey.isPressed || kb.rightArrowKey.isPressed) h =  1f;
+        if (kb.sKey.isPressed || kb.downArrowKey.isPressed)  v = -1f;
+        if (kb.wKey.isPressed || kb.upArrowKey.isPressed)    v =  1f;
+
+        transform.position += new Vector3(h, v, 0) * MoveSpeed * Time.deltaTime;
     }
 
     void HandleZoom()
     {
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
-        cam.orthographicSize -= scroll * ZoomSpeed;
+        var mouse = Mouse.current;
+        if (mouse == null) return;
+
+        float scroll = mouse.scroll.ReadValue().y;
+        cam.orthographicSize -= scroll * ZoomSpeed * 0.05f;
         cam.orthographicSize = Mathf.Clamp(cam.orthographicSize, MinSize, MaxSize);
     }
 
