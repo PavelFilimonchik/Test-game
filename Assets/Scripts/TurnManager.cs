@@ -23,6 +23,7 @@ public class TurnManager : MonoBehaviour
         IsPlayerTurn = true;
         foreach (var unit in FindObjectsByType<Unit>(FindObjectsSortMode.None))
             unit.ResetAP();
+        ResourceManager.Instance.CollectFromBuildings();
         Debug.Log($"=== ХОД {TurnNumber} — ВАШ ХОД === (Пробел — завершить)");
     }
 
