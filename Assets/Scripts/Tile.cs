@@ -1,12 +1,11 @@
-// Типы местности на карте
 public enum TileType
 {
     Meadow, // Луг
     Forest, // Лес
-    Field   // Пашня
+    Rock,   // Камни
+    Water   // Вода
 }
 
-// Данные одного тайла карты
 public class Tile
 {
     public int X;

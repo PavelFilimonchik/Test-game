@@ -62,6 +62,12 @@ public class BuildingPlacer : MonoBehaviour
             if (up == pos) { Debug.Log("Клетка занята юнитом!"); return; }
         }
 
+        if (MapGenerator.WaterTiles.Contains(pos))
+        {
+            Debug.Log("Нельзя строить на воде!");
+            return;
+        }
+
         if (!ResourceManager.Instance.Spend(goldCost, woodCost)) return;
 
         var root = new GameObject(name);

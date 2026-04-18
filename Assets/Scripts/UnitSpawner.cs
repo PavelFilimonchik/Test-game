@@ -5,13 +5,13 @@ public class UnitSpawner : MonoBehaviour
     void Start()
     {
         // Игрок
-        Spawn("Пехота",   2, 5, new Color(0.2f, 0.5f, 1.0f), hp:30, atk:10, move:3, atkRange:1, enemy:false);
-        Spawn("Конница",  5, 7, new Color(1.0f, 0.5f, 0.0f), hp:20, atk:15, move:5, atkRange:1, enemy:false);
-        Spawn("Лучник",   8, 3, new Color(0.8f, 0.2f, 0.8f), hp:15, atk:12, move:2, atkRange:2, enemy:false);
+        Spawn("Пехота",    4,  4, new Color(0.2f, 0.5f, 1.0f), hp:30, atk:10, move:3, atkRange:1, enemy:false);
+        Spawn("Конница",   7,  6, new Color(1.0f, 0.5f, 0.0f), hp:20, atk:15, move:5, atkRange:1, enemy:false);
+        Spawn("Лучник",    4,  7, new Color(0.8f, 0.2f, 0.8f), hp:15, atk:12, move:2, atkRange:2, enemy:false);
 
         // Враги
-        Spawn("Враг-меч", 7, 8, new Color(0.9f, 0.1f, 0.1f), hp:25, atk: 8, move:3, atkRange:1, enemy:true);
-        Spawn("Враг-лук", 3, 2, new Color(0.7f, 0.0f, 0.0f), hp:15, atk:10, move:2, atkRange:2, enemy:true);
+        Spawn("Враг-меч", 26, 24, new Color(0.9f, 0.1f, 0.1f), hp:25, atk: 8, move:3, atkRange:1, enemy:true);
+        Spawn("Враг-лук", 24, 27, new Color(0.7f, 0.0f, 0.0f), hp:15, atk:10, move:2, atkRange:2, enemy:true);
     }
 
     void Spawn(string unitName, int x, int z, Color color,

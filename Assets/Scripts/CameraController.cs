@@ -7,12 +7,12 @@ public class CameraController : MonoBehaviour
     public float RotateSpeed = 120f;
     public float ZoomSpeed   = 4f;
     public float MinDistance = 4f;
-    public float MaxDistance = 20f;
+    public float MaxDistance = 35f;
 
-    private float   distance   = 12f;
+    private float   distance   = 20f;
     private float   pitch      = 50f;
     private float   yaw        = 45f;
-    private Vector3 focusPoint = new Vector3(4.5f, 0f, 4.5f);
+    private Vector3 focusPoint = new Vector3(16f, 0f, 16f);
     private Vector2 prevMouse;
 
     void Start() => ApplyTransform();
@@ -22,8 +22,8 @@ public class CameraController : MonoBehaviour
         MoveCamera();
         RotateCamera();
         ZoomCamera();
-        focusPoint.x = Mathf.Clamp(focusPoint.x, 0f, 9f);
-        focusPoint.z = Mathf.Clamp(focusPoint.z, 0f, 9f);
+        focusPoint.x = Mathf.Clamp(focusPoint.x, 0f, 31f);
+        focusPoint.z = Mathf.Clamp(focusPoint.z, 0f, 31f);
         focusPoint.y = 0f;
         ApplyTransform();
     }
