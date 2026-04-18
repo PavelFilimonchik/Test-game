@@ -23,12 +23,10 @@ public class UIManager : MonoBehaviour
 
     void BuildUI()
     {
-        // EventSystem — без него кнопки не работают
         var esGO = new GameObject("EventSystem");
         esGO.AddComponent<EventSystem>();
         esGO.AddComponent<InputSystemUIInputModule>();
 
-        // Canvas
         var canvasGO = new GameObject("GameCanvas");
         var canvas   = canvasGO.AddComponent<Canvas>();
         canvas.renderMode   = RenderMode.ScreenSpaceOverlay;
@@ -47,10 +45,21 @@ public class UIManager : MonoBehaviour
         hud.sizeDelta        = new Vector2(0, 70);
         hud.gameObject.AddComponent<Image>().color = new Color(0.08f, 0.08f, 0.08f, 0.88f);
 
-        turnText = MakeText(hud, "Turn", new Vector2(0.01f, 0f), new Vector2(0.78f, 1f), "Ход 1 — Ваш");
+        // Золото — левый край HUD
+        goldText          = MakeText(hud, "Gold", new Vector2(0.01f, 0f), new Vector2(0.20f, 1f), "Золото: 20");
+        goldText.fontSize = 24;
+        goldText.color    = new Color(1f, 0.85f, 0.1f);
+
+        // Дерево — рядом
+        woodText          = MakeText(hud, "Wood", new Vector2(0.21f, 0f), new Vector2(0.40f, 1f), "Дерево: 10");
+        woodText.fontSize = 24;
+        woodText.color    = new Color(0.55f, 0.88f, 0.3f);
+
+        // Счётчик ходов — центр
+        turnText = MakeText(hud, "Turn", new Vector2(0.40f, 0f), new Vector2(0.78f, 1f), "Ход 1 — Ваш");
         turnText.alignment = TextAlignmentOptions.Center;
 
-        // Кнопка "Завершить ход"
+        // Кнопка "Завершить ход" — правый край
         var btnRT       = MakeRect(hud, "EndTurnBtn");
         btnRT.anchorMin = new Vector2(0.81f, 0.1f);
         btnRT.anchorMax = new Vector2(0.99f, 0.9f);
@@ -62,22 +71,7 @@ public class UIManager : MonoBehaviour
         btnLabel.alignment = TextAlignmentOptions.Center;
         btnLabel.fontSize  = 26;
 
-        // Маленький блок ресурсов — правый верхний угол
-        var resRT              = MakeRect(canvasGO.transform, "ResPanel");
-        resRT.anchorMin        = new Vector2(1f, 1f);
-        resRT.anchorMax        = new Vector2(1f, 1f);
-        resRT.pivot            = new Vector2(1f, 1f);
-        resRT.anchoredPosition = new Vector2(-10f, -80f);
-        resRT.sizeDelta        = new Vector2(180f, 70f);
-        resRT.gameObject.AddComponent<Image>().color = new Color(0.08f, 0.08f, 0.08f, 0.88f);
-
-        goldText                    = MakeResText(resRT, "Gold", new Vector2(5f, 37f), "Золото: 20");
-        goldText.color              = new Color(1f, 0.85f, 0.1f);
-
-        woodText                    = MakeResText(resRT, "Wood", new Vector2(5f, 10f), "Дерево: 10");
-        woodText.color              = new Color(0.55f, 0.88f, 0.3f);
-
-        // Панель победы/поражения (по центру, скрыта)
+        // Панель победы/поражения
         var panelRT       = MakeRect(canvasGO.transform, "ResultPanel");
         panelRT.anchorMin = new Vector2(0.3f, 0.4f);
         panelRT.anchorMax = new Vector2(0.7f, 0.6f);
@@ -119,8 +113,6 @@ public class UIManager : MonoBehaviour
         Time.timeScale = 0f;
     }
 
-    // ─── Helpers ─────────────────────────────────────────────
-
     RectTransform MakeRect(Transform parent, string name)
     {
         var go = new GameObject(name);
@@ -141,23 +133,6 @@ public class UIManager : MonoBehaviour
         tmp.color     = Color.white;
         tmp.alignment = TextAlignmentOptions.MidlineLeft;
         tmp.margin    = new Vector4(10, 0, 10, 0);
-        return tmp;
-    }
-
-    TextMeshProUGUI MakeResText(RectTransform parent, string name, Vector2 offsetMin, string text)
-    {
-        var rt            = MakeRect(parent, name);
-        rt.anchorMin      = Vector2.zero;
-        rt.anchorMax      = Vector2.zero;
-        rt.pivot          = new Vector2(0f, 0f);
-        rt.anchoredPosition = offsetMin;
-        rt.sizeDelta      = new Vector2(170f, 28f);
-        var tmp           = rt.gameObject.AddComponent<TextMeshProUGUI>();
-        tmp.text          = text;
-        tmp.fontSize      = 22;
-        tmp.color         = Color.white;
-        tmp.alignment     = TextAlignmentOptions.MidlineLeft;
-        tmp.enableWordWrapping = false;
         return tmp;
     }
 }
