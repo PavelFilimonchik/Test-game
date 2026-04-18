@@ -47,9 +47,7 @@ public class UIManager : MonoBehaviour
         hud.sizeDelta        = new Vector2(0, 70);
         hud.gameObject.AddComponent<Image>().color = new Color(0.08f, 0.08f, 0.08f, 0.88f);
 
-        goldText = MakeText(hud, "Gold", new Vector2(0f,    0f), new Vector2(0.25f, 1f), "Золото: 20");
-        woodText = MakeText(hud, "Wood", new Vector2(0.25f, 0f), new Vector2(0.50f, 1f), "Дерево: 10");
-        turnText = MakeText(hud, "Turn", new Vector2(0.50f, 0f), new Vector2(0.78f, 1f), "Ход 1 — Ваш");
+        turnText = MakeText(hud, "Turn", new Vector2(0.01f, 0f), new Vector2(0.78f, 1f), "Ход 1 — Ваш");
         turnText.alignment = TextAlignmentOptions.Center;
 
         // Кнопка "Завершить ход"
@@ -63,6 +61,23 @@ public class UIManager : MonoBehaviour
         var btnLabel = MakeText(btnRT, "Label", Vector2.zero, Vector2.one, "Завершить ход");
         btnLabel.alignment = TextAlignmentOptions.Center;
         btnLabel.fontSize  = 26;
+
+        // Маленький блок ресурсов — правый верхний угол
+        var resRT       = MakeRect(canvasGO.transform, "ResPanel");
+        resRT.anchorMin        = new Vector2(1f, 1f);
+        resRT.anchorMax        = new Vector2(1f, 1f);
+        resRT.pivot            = new Vector2(1f, 1f);
+        resRT.anchoredPosition = new Vector2(-10f, -10f);
+        resRT.sizeDelta        = new Vector2(150f, 52f);
+        resRT.gameObject.AddComponent<Image>().color = new Color(0.08f, 0.08f, 0.08f, 0.82f);
+
+        goldText           = MakeText(resRT, "Gold", new Vector2(0f, 0.5f), Vector2.one, "Золото: 20");
+        goldText.fontSize  = 20;
+        goldText.color     = new Color(1f, 0.85f, 0.1f);
+
+        woodText           = MakeText(resRT, "Wood", Vector2.zero, new Vector2(1f, 0.5f), "Дерево: 10");
+        woodText.fontSize  = 20;
+        woodText.color     = new Color(0.6f, 0.88f, 0.35f);
 
         // Панель победы/поражения (по центру, скрыта)
         var panelRT       = MakeRect(canvasGO.transform, "ResultPanel");
