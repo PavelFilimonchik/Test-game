@@ -30,19 +30,15 @@ public class EnemyAI : MonoBehaviour
         Unit target = FindNearestPlayer(enemy);
         if (target == null) return;
 
-        // Атаковать если уже в зоне досягаемости
         if (CombatSystem.InRange(enemy, target) && enemy.AP > 0)
         {
             CombatSystem.Attack(enemy, target);
             return;
         }
 
-        // Двигаться к ближайшему игроку
         if (enemy.AP > 0)
         {
             MoveToward(enemy, target);
-
-            // Атаковать после движения если теперь в зоне
             if (target != null && CombatSystem.InRange(enemy, target) && enemy.AP > 0)
                 CombatSystem.Attack(enemy, target);
         }
@@ -53,40 +49,41 @@ public class EnemyAI : MonoBehaviour
         Unit nearest = null;
         int  minDist = int.MaxValue;
 
-        foreach (var unit in FindObjectsByType<Unit>(FindObjectsSortMode.None))
+        foreach (var u in FindObjectsByType<Unit>(FindObjectsSortMode.None))
         {
-            if (unit.IsEnemy) continue;
-            Vector2Int a = Vector2Int.RoundToInt(enemy.transform.position);
-            Vector2Int b = Vector2Int.RoundToInt(unit.transform.position);
-            int dist = Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
-            if (dist < minDist) { minDist = dist; nearest = unit; }
+            if (u.IsEnemy) continue;
+            int dist = Mathf.Abs(Mathf.RoundToInt(enemy.transform.position.x) - Mathf.RoundToInt(u.transform.position.x))
+                     + Mathf.Abs(Mathf.RoundToInt(enemy.transform.position.z) - Mathf.RoundToInt(u.transform.position.z));
+            if (dist < minDist) { minDist = dist; nearest = u; }
         }
-
         return nearest;
     }
 
     void MoveToward(Unit enemy, Unit target)
     {
-        Vector2Int myPos     = Vector2Int.RoundToInt(enemy.transform.position);
-        Vector2Int targetPos = Vector2Int.RoundToInt(target.transform.position);
+        Vector2Int myPos = new Vector2Int(
+            Mathf.RoundToInt(enemy.transform.position.x),
+            Mathf.RoundToInt(enemy.transform.position.z));
+        Vector2Int targetPos = new Vector2Int(
+            Mathf.RoundToInt(target.transform.position.x),
+            Mathf.RoundToInt(target.transform.position.z));
 
-        // Занятые клетки — нельзя вставать на них
         var occupied = new HashSet<Vector2Int>(
             FindObjectsByType<Unit>(FindObjectsSortMode.None)
-                .Select(u => Vector2Int.RoundToInt(u.transform.position))
-        );
+                .Select(u => new Vector2Int(
+                    Mathf.RoundToInt(u.transform.position.x),
+                    Mathf.RoundToInt(u.transform.position.z))));
 
-        var reachable = PathFinder.GetReachable(myPos, enemy.MoveRange);
-        var free      = reachable.Where(p => !occupied.Contains(p)).ToList();
-
+        var free = PathFinder.GetReachable(myPos, enemy.MoveRange)
+                             .Where(p => !occupied.Contains(p)).ToList();
         if (free.Count == 0) return;
 
         Vector2Int best = free
             .OrderBy(p => Mathf.Abs(p.x - targetPos.x) + Mathf.Abs(p.y - targetPos.y))
             .First();
 
-        enemy.transform.position = new Vector3(best.x, best.y, enemy.transform.position.z);
+        enemy.transform.position = new Vector3(best.x, 0.5f, best.y);
         enemy.UseAP(1);
-        Debug.Log($"{enemy.UnitName} движется → ({best.x},{best.y})");
+        Debug.Log($"{enemy.UnitName} → ({best.x},{best.y})");
     }
 }

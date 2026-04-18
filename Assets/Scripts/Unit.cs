@@ -8,17 +8,17 @@ public class Unit : MonoBehaviour
     public int HP, MaxHP, Attack, MoveRange, AttackRange = 1, AP, MaxAP = 2;
     public bool IsEnemy;
 
-    private SpriteRenderer sr;
-    private Color baseColor;
-    public static Unit Selected;
+    private MeshRenderer mr;
+    private Color        baseColor;
+    public static Unit   Selected;
 
     private List<Vector2Int> reachable  = new List<Vector2Int>();
     private List<GameObject> highlights = new List<GameObject>();
 
     void Start()
     {
-        sr        = GetComponent<SpriteRenderer>();
-        baseColor = sr.color;
+        mr        = GetComponent<MeshRenderer>();
+        baseColor = mr.material.color;
         AP        = MaxAP;
     }
 
@@ -27,11 +27,12 @@ public class Unit : MonoBehaviour
         if (IsEnemy) return;
         if (!Mouse.current.leftButton.wasPressedThisFrame) return;
 
-        Vector2 mouseWorld = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-        RaycastHit2D hit   = Physics2D.Raycast(mouseWorld, Vector2.zero);
+        Ray        ray    = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+        RaycastHit hit;
+        bool       didHit = Physics.Raycast(ray, out hit);
 
-        // Клик по этому юниту — выбрать
-        if (hit.collider != null && hit.collider.gameObject == gameObject)
+        // Клик по этому юниту
+        if (didHit && hit.collider.gameObject == gameObject)
         {
             Select();
             return;
@@ -40,7 +41,7 @@ public class Unit : MonoBehaviour
         if (Selected != this) return;
 
         // Клик по другому юниту
-        if (hit.collider != null)
+        if (didHit)
         {
             Unit other = hit.collider.GetComponent<Unit>();
             if (other != null)
@@ -50,28 +51,35 @@ public class Unit : MonoBehaviour
                 else if (!other.IsEnemy)
                     other.Select();
                 else
-                    Debug.Log($"Слишком далеко для атаки! (дальность: {AttackRange})");
+                    Debug.Log($"Слишком далеко! (дальность: {AttackRange})");
                 return;
             }
         }
 
-        // Клик по клетке — переместиться
-        Vector2Int gridPos = Vector2Int.RoundToInt(mouseWorld);
-        if (reachable.Contains(gridPos) && AP > 0)
-            MoveTo(gridPos);
-        else
-            Deselect();
+        // Клик по земле — переместиться
+        Plane ground = new Plane(Vector3.up, Vector3.zero);
+        float enter;
+        if (ground.Raycast(ray, out enter))
+        {
+            Vector3    worldPos = ray.GetPoint(enter);
+            Vector2Int gridPos  = new Vector2Int(
+                Mathf.RoundToInt(worldPos.x),
+                Mathf.RoundToInt(worldPos.z)
+            );
+            if (reachable.Contains(gridPos) && AP > 0)
+                MoveTo(gridPos);
+            else
+                Deselect();
+        }
     }
 
     public void Select()
     {
-        if (Selected != null && Selected != this)
-            Selected.Deselect();
-
+        if (Selected != null && Selected != this) Selected.Deselect();
         Selected = this;
-        sr.color = Color.yellow;
+        mr.material.color = Color.yellow;
         RefreshHighlights();
-        Debug.Log($"Выбран: {UnitName} | HP: {HP}/{MaxHP} | Атака: {Attack} | AP: {AP}/{MaxAP}");
+        Debug.Log($"Выбран: {UnitName} | HP:{HP}/{MaxHP} | AP:{AP}/{MaxAP}");
     }
 
     public void Deselect()
@@ -79,15 +87,15 @@ public class Unit : MonoBehaviour
         ClearHighlights();
         reachable.Clear();
         Selected = null;
-        sr.color = baseColor;
+        mr.material.color = baseColor;
     }
 
     void MoveTo(Vector2Int pos)
     {
         UseAP(1);
-        transform.position = new Vector3(pos.x, pos.y, transform.position.z);
+        transform.position = new Vector3(pos.x, 0.5f, pos.y);
         RefreshHighlights();
-        Debug.Log($"{UnitName} → ({pos.x},{pos.y}) | AP: {AP}/{MaxAP}");
+        Debug.Log($"{UnitName} → ({pos.x},{pos.y}) | AP:{AP}/{MaxAP}");
     }
 
     public void RefreshHighlights()
@@ -95,33 +103,38 @@ public class Unit : MonoBehaviour
         ClearHighlights();
         if (AP <= 0) return;
 
-        Vector2Int myPos = Vector2Int.RoundToInt(transform.position);
-        Sprite sq = MakeSquareSprite();
+        Vector2Int myPos = new Vector2Int(
+            Mathf.RoundToInt(transform.position.x),
+            Mathf.RoundToInt(transform.position.z)
+        );
 
-        // Голубые клетки — зона движения
         reachable = PathFinder.GetReachable(myPos, MoveRange);
         foreach (var p in reachable)
-            CreateHighlight(p, new Color(0f, 1f, 1f, 0.35f), sq, -0.5f);
+            SpawnHighlight(p, new Color(0f, 0.8f, 1f));
 
-        // Красные клетки — враги в зоне атаки
         foreach (var unit in FindObjectsByType<Unit>(FindObjectsSortMode.None))
         {
             if (!unit.IsEnemy) continue;
             if (CombatSystem.InRange(this, unit))
             {
-                Vector2Int ep = Vector2Int.RoundToInt(unit.transform.position);
-                CreateHighlight(ep, new Color(1f, 0f, 0f, 0.5f), sq, -0.6f);
+                Vector2Int ep = new Vector2Int(
+                    Mathf.RoundToInt(unit.transform.position.x),
+                    Mathf.RoundToInt(unit.transform.position.z)
+                );
+                SpawnHighlight(ep, new Color(1f, 0.15f, 0.15f));
             }
         }
     }
 
-    void CreateHighlight(Vector2Int pos, Color color, Sprite sprite, float z)
+    void SpawnHighlight(Vector2Int pos, Color color)
     {
-        var h = new GameObject("Highlight");
-        h.transform.position = new Vector3(pos.x, pos.y, z);
-        var hsr    = h.AddComponent<SpriteRenderer>();
-        hsr.sprite = sprite;
-        hsr.color  = color;
+        var h = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        h.name = "Highlight";
+        h.transform.position   = new Vector3(pos.x, 0.02f, pos.y);
+        h.transform.rotation   = Quaternion.Euler(90f, 0f, 0f);
+        h.transform.localScale = Vector3.one * 0.9f;
+        h.GetComponent<MeshRenderer>().material.color = color;
+        Destroy(h.GetComponent<Collider>());
         highlights.Add(h);
     }
 
@@ -132,20 +145,11 @@ public class Unit : MonoBehaviour
         highlights.Clear();
     }
 
-    Sprite MakeSquareSprite()
-    {
-        Texture2D t = new Texture2D(1, 1);
-        t.SetPixel(0, 0, Color.white);
-        t.Apply();
-        return Sprite.Create(t, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
-    }
-
     public void TakeDamage(int damage, string attackerName)
     {
         HP -= damage;
         HP  = Mathf.Max(HP, 0);
         Debug.Log($"{attackerName} атакует {UnitName}: -{damage} HP. Осталось: {HP}/{MaxHP}");
-
         if (HP <= 0)
         {
             Debug.Log($"{UnitName} уничтожен!");

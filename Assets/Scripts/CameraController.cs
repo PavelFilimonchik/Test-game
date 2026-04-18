@@ -3,55 +3,88 @@ using UnityEngine.InputSystem;
 
 public class CameraController : MonoBehaviour
 {
-    public float MoveSpeed = 10f;
-    public float ZoomSpeed = 5f;
-    public float MinSize = 3f;
-    public float MaxSize = 10f;
+    public float MoveSpeed   = 10f;
+    public float RotateSpeed = 120f;
+    public float ZoomSpeed   = 4f;
+    public float MinDistance = 4f;
+    public float MaxDistance = 20f;
 
-    private Camera cam;
+    private float   distance   = 12f;
+    private float   pitch      = 50f;
+    private float   yaw        = 45f;
+    private Vector3 focusPoint = new Vector3(4.5f, 0f, 4.5f);
+    private Vector2 prevMouse;
 
-    void Start()
-    {
-        cam = GetComponent<Camera>();
-    }
+    void Start() => ApplyTransform();
 
     void Update()
     {
-        HandleMovement();
-        HandleZoom();
-        ClampPosition();
+        MoveCamera();
+        RotateCamera();
+        ZoomCamera();
+        focusPoint.x = Mathf.Clamp(focusPoint.x, 0f, 9f);
+        focusPoint.z = Mathf.Clamp(focusPoint.z, 0f, 9f);
+        focusPoint.y = 0f;
+        ApplyTransform();
     }
 
-    void HandleMovement()
+    void MoveCamera()
     {
-        float h = 0f;
-        float v = 0f;
-
         var kb = Keyboard.current;
         if (kb == null) return;
 
+        float h = 0f, v = 0f;
         if (kb.aKey.isPressed || kb.leftArrowKey.isPressed)  h = -1f;
         if (kb.dKey.isPressed || kb.rightArrowKey.isPressed) h =  1f;
         if (kb.sKey.isPressed || kb.downArrowKey.isPressed)  v = -1f;
         if (kb.wKey.isPressed || kb.upArrowKey.isPressed)    v =  1f;
 
-        transform.position += new Vector3(h, v, 0) * MoveSpeed * Time.deltaTime;
+        float rad   = yaw * Mathf.Deg2Rad;
+        Vector3 fwd   = new Vector3( Mathf.Sin(rad), 0f,  Mathf.Cos(rad));
+        Vector3 right = new Vector3( Mathf.Cos(rad), 0f, -Mathf.Sin(rad));
+        focusPoint += (fwd * v + right * h) * MoveSpeed * Time.deltaTime;
     }
 
-    void HandleZoom()
+    void RotateCamera()
+    {
+        var mouse = Mouse.current;
+        if (mouse == null) return;
+
+        if (mouse.rightButton.wasPressedThisFrame)
+            prevMouse = mouse.position.ReadValue();
+
+        if (mouse.rightButton.isPressed)
+        {
+            Vector2 delta = (Vector2)mouse.position.ReadValue() - prevMouse;
+            prevMouse = mouse.position.ReadValue();
+            yaw   += delta.x * RotateSpeed * Time.deltaTime;
+            pitch -= delta.y * RotateSpeed * Time.deltaTime;
+            pitch  = Mathf.Clamp(pitch, 15f, 80f);
+        }
+    }
+
+    void ZoomCamera()
     {
         var mouse = Mouse.current;
         if (mouse == null) return;
 
         float scroll = mouse.scroll.ReadValue().y;
-        cam.orthographicSize -= scroll * ZoomSpeed * 0.05f;
-        cam.orthographicSize = Mathf.Clamp(cam.orthographicSize, MinSize, MaxSize);
+        distance -= scroll * ZoomSpeed * 0.05f;
+        distance  = Mathf.Clamp(distance, MinDistance, MaxDistance);
     }
 
-    void ClampPosition()
+    void ApplyTransform()
     {
-        float x = Mathf.Clamp(transform.position.x, 0f, 9f);
-        float y = Mathf.Clamp(transform.position.y, 0f, 9f);
-        transform.position = new Vector3(x, y, transform.position.z);
+        float pRad = pitch * Mathf.Deg2Rad;
+        float yRad = yaw   * Mathf.Deg2Rad;
+
+        Vector3 offset = new Vector3(
+            distance * Mathf.Cos(pRad) * Mathf.Sin(yRad),
+            distance * Mathf.Sin(pRad),
+            distance * Mathf.Cos(pRad) * Mathf.Cos(yRad)
+        );
+
+        transform.position = focusPoint + offset;
+        transform.LookAt(focusPoint);
     }
 }
