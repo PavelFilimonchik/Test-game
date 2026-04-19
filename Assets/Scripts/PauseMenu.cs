@@ -3,6 +3,9 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using TMPro;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 public class PauseMenu : MonoBehaviour
 {
@@ -16,7 +19,11 @@ public class PauseMenu : MonoBehaviour
 
     void Update()
     {
+#if ENABLE_INPUT_SYSTEM
+        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+#else
         if (Input.GetKeyDown(KeyCode.Escape))
+#endif
             TogglePause();
     }
 
